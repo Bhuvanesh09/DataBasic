@@ -84,6 +84,7 @@ insert into student values(21130, 'Ankit Roy', '1998-10-13', 'Male', 'Bakul', 20
 insert into student values(21140, 'Ankita Ray', '1998-10-21', 'Female', 'Parijaat', 2018, 'ECE');
 
 insert into administrator values(51120,'Mahant Parekh', '1992-01-22', 'Male', 'Senior Administrator');
+
 insert into user_group values ('C101', 'Music', 'Club');
 insert into user_group values ('O121', 'NLPStudents', NULL);
 insert into user_group values ('D110', 'Mathematics', 'Department');
