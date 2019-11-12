@@ -2,108 +2,165 @@ import subprocess as sp
 import pymysql , getpass
 import pymysql.cursors
 
-def insertionInDb(tab,fieldNames):
+
+def insertionInDb(con,tab,fieldNames):
+    cur = con.cursor()
+    print("In Insertion" )
+    print(cur)
     try:
         cols=""
         vals=""
         for i in fieldNames:
-            cols += "'" + i + "'" + ','
-            vals += input("Please Input the value of " + i + "in your " + tab + " : ")
+            cols +=  i + ","
+            vals += "\'" + input("Please Input the value of " + i + " in your " + tab + " : ") +"\'" + ","
 
-        query = "insert into " + tab + "("  + cols[:-1] + ") values(" + vals[:-1] + ");"
+        query = "insert into " + tab + "(" + cols[:-1] + ") values(" + vals[:-1] + ");"
         print(query)
         cur.execute(query)
         con.commit()
     
-    except Error as e:
+    except Exception as e:
         con.rollback() #To undo the mistakes
         print("Oopsie Doopsie, There was an error")
         print("----->" , e)
 
 
-def updateInDb(tab,fieldNames,whereFields,whereVals,whereRels):
+def updateInDb(con,tab,fieldNames,whereFields,whereVals,whereRels):
+    cur = con.cursor()
     try:
         vals=[]
         for i in fieldNames:
-            vals.append(input("Value of " + i + "in your " + tab + "has to be updted to : "))
+            vals.append(input("Value of " + i + " in your " + tab + " has to be updated to : "))
 
         query = "update " + tab
 
-        for i in range(fieldNames.size()):
-            query += "set "+fieldNames[i]+"='"+vals[i]+"' ,"
+        query += " set "
+        for i in range(len(fieldNames)):
+            query += fieldNames[i]+"=\'"+vals[i]+"\' ,"
         query = query[:-1]
 
-        for i in range(whereFields.size()):
-            query += "where "+ whereFields[i] + whereRels[i] +"'"+ whereVals[i] + "'"
-            if i != whereFields.size():
+        for i in range(len(whereFields)):
+            query += "where "+ whereFields[i] + whereRels[i] +"\'"+ whereVals[i] + "\'"
+            if i != len(whereFields)-1:
                 query += " AND "
 
         print(query)
         cur.execute(query)
         con.commit()
     
-    except Error as e:
+    except Exception as e:
         con.rollback() #To undo the mistakes
         print("Oopsie Doopsie, There was an error")
         print("----->" , e)
 
 
-
-
-
-
-def hireAnEmployee():
+def deleteInDb(con,tab,whereFields,whereVals,whereRels):
+    cur = con.cursor()
     try:
-        # Takes emplyee details as input
-        row = {}
-        print("Enter new employee's details: ")
-        name = (input("Name (Fname Minit Lname): ")).split(' ')
-        row["Fname"] = name[0]
-        row["Minit"] = name[1]
-        row["Lname"] = name[2]
-        row["Ssn"] = input("SSN: ")
-        row["Bdate"] = input("Birth Date (YYYY-MM-DD): ")
-        row["Address"] = input("Address: ")
-        row["Sex"] = input("Sex: ")
-        row["Salary"] = float(input("Salary: "))
-        row["Dno"] = int(input("Dno: "))
+        
+        query = "delete from " + tab
 
-        """
-        In addition to taking input, you are required to handle domain errors as well
-        For example: the SSN should be only 9 characters long
-        Sex should be only M or F
-        If you choose to take Super_SSN, you need to make sure the foreign key constraint is satisfied
-        HINT: Instead of handling all these errors yourself, you can make use of except clause to print the error returned to you by MySQL
-        """
-
-        query = "INSERT INTO EMPLOYEE(Fname, Minit, Lname, Ssn, Bdate, Address, Sex, Salary, Dno) VALUES('%s', '%c', '%s', '%s', '%s', '%s', '%c', %f, %d)" %(row["Fname"], row["Minit"], row["Lname"], row["Ssn"], row["Bdate"], row["Address"], row["Sex"], row["Salary"], row["Dno"])
+        for i in range(len(whereFields)):
+            query += " where "+ whereFields[i] + whereRels[i] +"\'"+ whereVals[i] + "\'"
+            if i != len(whereFields)-1:
+                query += " AND "
 
         print(query)
         cur.execute(query)
         con.commit()
-
-        print("Inserted Into Database")
-
+    
     except Exception as e:
-        con.rollback()
-        print("Failed to insert into database")
-        print (">>>>>>>>>>>>>", e)
-        
-    return
+        con.rollback() #To undo the mistakes
+        print("Oopsie Doopsie, There was an error")
+        print("----->" , e)
 
-def dispatch(ch):
+
+def addUser(con):
+    insertionInDb(con,'student',['user_id','user_name','DOB','gender','hostel','year_of_admission','program_name'])
+
+def addGroup(con):
+    insertionInDb(con,'user_group',['group_id','name','type'])
+
+def addLocation(con):
+    insertionInDb(con,'location',['building_name','room_number','room_name'])
+
+def addEvent(con):
+    insertionInDb(con,'event',['event_name','building_name','room_number','group_id','start_time','end_time','event_date'])
+
+def addCourse(con):
+    insertionInDb(con,'course',['course_id','course_name','department_id'])
+
+def addUserToGroup(con):
+    insertionInDb(con,'group_members',['user_id','group_id'])
+
+def addClubCo(con):
+    insertionInDb(con,'club_co',['group_id','user_id'])
+
+def changeLocation(con):
+    name=input("What is the name of the event whose location you want to change?: ")
+    updateInDb(con,'event',['building_name','room_number'],['event_name'],[name],["="])
+
+def changeTime(con):
+    name=input("What is the name of the event whose time you want to change?: ")
+    updateInDb(con,'event',['start_time','end_time'],['event_name'],[name],["="])
+
+def delUserFromGroup(con):
+    user_id=input("What is the ID of the user you wanna remove?:")
+    group_id=input("What is the ID of the group you want to remove the user from? :")
+    deleteInDb(con,'group_members',['user_id','group_id'],[user_id,group_id],["=","="])
+
+def delLocation(con):
+    room=input("What is the room number which you want to delete?")
+    buil=input("What is the building you want to delte the room from?")
+    deleteInDb(con,'location',['building_name','room_number'],[buil,room],["=","="])
+
+def delEvent(con):
+    name=input("What is the name of the Event(s) you want to delete?: ")
+    deleteInDb(con,'event',['event_name'],[name],["="])
+
+def delUser(con):
+    user_id=input("What is the ID of the student you wanna remove?: ")
+    deleteInDb(con,'student',['user_id'],[user_id],["="])
+
+def delClubCo(con):
+    user_id=input("What is the ID of Coordinator ? ")
+    group_id=input("What is the ID of the group you want to remove the coordinator of? :")
+    deleteInDb(con,'club_co',['user_id','group_id'],[user_id,group_id],["=","="])
+
+
+def dispatch(con,ch):
     """
     Function that maps helper functions to option entered
     """
 
-    if(ch==1): 
-        hireAnEmployee()
-    elif(ch==2):
-        fireAnEmployee()
-    elif(ch==3):
-        promoteEmployee()
-    elif(ch==4):
-        employeeStatistics()
+    if(ch=='1'): 
+        addUser(con)
+    elif(ch=='2'):
+        addGroup(con)
+    elif(ch=='3'):
+        addLocation(con)
+    elif(ch=='4'):
+        addEvent(con)
+    elif(ch=='5'):
+        addCourse(con)
+    elif(ch=='7'):
+        addUserToGroup(con)
+    elif(ch=='8'):
+        addClubCo(con)
+    elif(ch=='9'):
+        changeLocation(con)
+    elif(ch=='10'):
+        changeTime(con)
+    elif(ch=='11'):
+        delUserFromGroup(con)
+    elif(ch=='12'):
+        delClubCo(con)
+    elif(ch=='13'):
+        delEvent(con)
+    elif(ch=='15'):
+        delLocation(con)
+    elif(ch=='14'):
+        delUser(con)
     else:
         print("Error: Invalid Option")
 
@@ -117,7 +174,7 @@ while(1):
         con = pymysql.connect(host='localhost',
                 user=username,
                 password=password,
-                db='COLLEGE',
+                db='CALENDAR',
                 cursorclass=pymysql.cursors.DictCursor)
         tmp = sp.call('clear',shell=True)
 
@@ -139,7 +196,6 @@ while(1):
                 print("3. Add new Location")
                 print("4. Add an event")
                 print("5. Add new course")
-                print("6. Add new club")
                 print("7. Add User to Usergroup")
                 print("8. Appoint new Club Coordinator")
                 print("")
@@ -157,22 +213,23 @@ while(1):
                 print("11. Remove User from Group")
                 print("12. Remove Coordinator of a Club")
                 print("13. Delete Event")
-                print("14. Delele User")
-                print("15. Delete Locations")
+                print("14. Delete User")
+                print("15. Delete Location")
                 print("")
 
-                ch = int(input("Enter choice> "))
+                ch = input("Enter choice> ")
                 tmp = sp.call('clear',shell=True)
-                if ch==5:
+                if ch=='q':
                     break
                 else:
-                    dispatch(ch)
+                    dispatch(con,ch)
                     tmp = input("Enter any key to CONTINUE>")
 
 
 
-    except:
+    except Exception as e:
         tmp = sp.call('clear',shell=True)
         print("Connection Refused: Either username or password is incorrect or user doesn't have access to database")
+        print("Error Code: " , e)
         tmp = input("Enter any key to CONTINUE>")
     
