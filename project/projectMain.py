@@ -2,29 +2,54 @@ import subprocess as sp
 import pymysql , getpass
 import pymysql.cursors
 
-def fireAnEmployee():
-    """
-    Function to fire an employee
-    """
-    print("Not implemented")
+def insertionInDb(tab,fieldNames):
+    try:
+        cols=""
+        vals=""
+        for i in fieldNames:
+            cols += "'" + i + "'" + ','
+            vals += input("Please Input the value of " + i + "in your " + tab + " : ")
 
-def promoteEmployee():
-    """
-    Function performs one of three jobs
-    1. Increases salary
-    2. Makes employee a supervisor
-    3. Makes employee a manager
-    """
-    print("Not implemented")
+        query = "insert into " + tab + "("  + cols[:-1] + ") values(" + vals[:-1] + ");"
+        print(query)
+        cur.execute(query)
+        con.commit()
+    
+    except Error as e:
+        con.rollback() #To undo the mistakes
+        print("Oopsie Doopsie, There was an error")
+        print("----->" , e)
 
 
-def employeeStatistics():
-    """
-    Function prints a report containing 
-    the number of hours per week the employee works,
-    hourly pay, projects employee works on and so on
-    """
-    print("Not implemented")
+def updateInDb(tab,fieldNames,whereFields,whereVals,whereRels):
+    try:
+        vals=[]
+        for i in fieldNames:
+            vals.append(input("Value of " + i + "in your " + tab + "has to be updted to : "))
+
+        query = "update " + tab
+
+        for i in range(fieldNames.size()):
+            query += "set "+fieldNames[i]+"='"+vals[i]+"' ,"
+        query = query[:-1]
+
+        for i in range(whereFields.size()):
+            query += "where "+ whereFields[i] + whereRels[i] +"'"+ whereVals[i] + "'"
+            if i != whereFields.size():
+                query += " AND "
+
+        print(query)
+        cur.execute(query)
+        con.commit()
+    
+    except Error as e:
+        con.rollback() #To undo the mistakes
+        print("Oopsie Doopsie, There was an error")
+        print("----->" , e)
+
+
+
+
 
 
 def hireAnEmployee():
@@ -106,11 +131,36 @@ while(1):
             cur = con.cursor()
             while(1):
                 tmp = sp.call('clear',shell=True)
-                print("1. Hire a new employee")
-                print("2. Fire an employee")
-                print("3. Promote an employee")
-                print("4. Employee Statistics")
-                print("5. Logout")
+                print("=========")
+                print("Insert and Additions")
+                print("=========")
+                print("1. Add new User")
+                print("2. Add new User Group")
+                print("3. Add new Location")
+                print("4. Add an event")
+                print("5. Add new course")
+                print("6. Add new club")
+                print("7. Add User to Usergroup")
+                print("8. Appoint new Club Coordinator")
+                print("")
+
+                print("=========")
+                print("Update")
+                print("=========")
+                print("9. Change Event Location")
+                print("10. Change Event Time")
+                print("")
+
+                print("=========")
+                print("Delete and Removals")
+                print("=========")
+                print("11. Remove User from Group")
+                print("12. Remove Coordinator of a Club")
+                print("13. Delete Event")
+                print("14. Delele User")
+                print("15. Delete Locations")
+                print("")
+
                 ch = int(input("Enter choice> "))
                 tmp = sp.call('clear',shell=True)
                 if ch==5:
