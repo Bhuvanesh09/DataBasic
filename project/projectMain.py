@@ -74,6 +74,63 @@ def deleteInDb(con,tab,whereFields,whereVals,whereRels):
         print("Oopsie Doopsie, There was an error")
         print("----->" , e)
 
+def agendaUser(con):
+    cur = con.cursor()
+    user_id = input("Insert the user ID whose report you want to generate: ")
+
+    try:
+        query="select event_name , building_name ,room_number , event_date , start_time , end_time from event join group_members on group_members.group_id = event.group_id where group_members.user_id = " + user_id + " order by event_date ;"
+        cur.execute(query)
+        print(cur.fetchall())
+
+    except Exception as e:
+        print("Error ----> " , e)
+
+def eventsOfDay(con):
+    cur = con.cursor()
+    date = input("Insert the date (YYYY-MM-DD) ")
+
+    try:
+        query="select * from event where date = \'" + date + "\' ;"
+        cur.execute(query)
+        print(cur.fetchall())
+
+    except Exception as e:
+        print("Error ----> " , e)
+
+def locIsFree(con):
+    cur = con.cursor()
+    building = input("Enter Building:")
+    room = input("enter Room:")
+    date = input("Insert the date (YYYY-MM-DD) ")
+    start_time = input("Input the start time")
+    end_time = input("Input the end time")
+
+    try:
+        query="""where building_name=\'"""+building+"""\' and room_number=\'"""+room +"""\' and event_date = \'"""+ date +"""\' and 
+( 
+    (start_time between \'"""+start_time+"""\' and \'"""+end_time+"""\' or end_time between \'"""+start_time+"""\' and \'"""+end_time+"""\')
+    OR
+    (start_time < \'"""+start_time+"""\' and end_time > \'"""+end_time+"""\' )
+);"""
+        cur.execute(query)
+        print(cur.fetchall())
+
+    except Exception as e:
+        print("Error ----> " , e)
+
+def groupInvited(con):
+    event_name = input("Input the name of the event : ")
+    group_name = input("Input the Group name: ")
+    try: 
+        query="select count(group_id) from user_group join event on user_group.group_id = event.group_id where event_name = \'" + event_name + "\' and user_group.name = \'" + group_name +"\';"
+        cur.execute(query)
+        print(cur.fetchall())
+
+    except Exception as e:
+        print("Error ---> ",e)
+        
+
 
 def addUser(con):
     insertionInDb(con,'student',['user_id','user_name','DOB','gender','hostel','year_of_admission','program_name'])
@@ -161,6 +218,8 @@ def dispatch(con,ch):
         delLocation(con)
     elif(ch=='14'):
         delUser(con)
+    elif(ch=='16'):
+        agendaUser(con)
     else:
         print("Error: Invalid Option")
 
@@ -216,6 +275,15 @@ while(1):
                 print("14. Delete User")
                 print("15. Delete Location")
                 print("")
+
+
+                print("=========")
+                print("Report Generation")
+                print("=========")
+                print("16.Agenda of a particular User")
+                print("17. All the events on a particular day")
+                print("18. Check if a particular user group is invited to an event")
+                print("19. Check if a location is free at a particular time slot")
 
                 ch = input("Enter choice> ")
                 tmp = sp.call('clear',shell=True)
